@@ -1,0 +1,55 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: mq-consumer-scaled-job
+spec:
+  jobTargetRef:
+    parallelism: 1
+    completions: 1
+    backoffLimit: 5
+    activeDeadlineSeconds: 3600
+    template:
+      spec:
+        containers:
+        - name: mq-consumer
+          image: autoscaleacr.azurecr.io/receive:0005
+          imagePullPolicy: IfNotPresent
+          name: mq-consumer
+          resources:
+            requests:
+              cpu: 800m
+              memory: 2048Mi
+            limits:
+              cpu: 800m
+              memory: 2048Mi
+          env:
+          - name: SERVICE_BUS_CONNECTION
+            value: "***** <Azure Service Bus Connection String> *****"
+          - name: SERVICE_BUS_QUEUE_NAME
+            value: "sbq-keda-queue"
+        tolerations:
+        - key: "kubernetes.azure.com/scalesetpriority"
+          operator: "Equal"
+          value: "spot"
+          effect: "NoSchedule"
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: "kubernetes.azure.com/scalesetpriority"
+                  operator: In
+                  values:
+                  - "spot"
+        restartPolicy: OnFailure
+  pollingInterval: 30             # Optional. Default: 30 seconds
+  minReplicaCount: 0              # Optional. Default: 0
+  maxReplicaCount: 3600           # Optional. Default: 100
+  successfulJobsHistoryLimit: 5   # Optional. Default: 100. How many completed jobs should be kept.
+  failedJobsHistoryLimit: 5       # Optional. Default: 100. How many failed jobs should be kept.
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      queueName: sbq-keda-queue
+      connectionFromEnv: SERVICE_BUS_CONNECTION
+      messageCount: "1"
