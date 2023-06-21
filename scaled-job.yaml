@@ -6,13 +6,13 @@ spec:
   jobTargetRef:
     parallelism: 1
     completions: 1
-    backoffLimit: 5
     activeDeadlineSeconds: 3600
+    backoffLimit: 0
     template:
       spec:
         containers:
         - name: mq-consumer
-          image: autoscaleacr.azurecr.io/receive:0005
+          image: autoscaleacr.azurecr.io/receive:0006
           imagePullPolicy: IfNotPresent
           name: mq-consumer
           resources:
@@ -41,12 +41,12 @@ spec:
                   operator: In
                   values:
                   - "spot"
-        restartPolicy: OnFailure
+        restartPolicy: Never
   pollingInterval: 30             # Optional. Default: 30 seconds
   minReplicaCount: 0              # Optional. Default: 0
-  maxReplicaCount: 3600           # Optional. Default: 100
-  successfulJobsHistoryLimit: 5   # Optional. Default: 100. How many completed jobs should be kept.
-  failedJobsHistoryLimit: 5       # Optional. Default: 100. How many failed jobs should be kept.
+  maxReplicaCount: 1800           # Optional. Default: 100
+  successfulJobsHistoryLimit: 10  # Optional. Default: 100. How many completed jobs should be kept.
+  failedJobsHistoryLimit: 10      # Optional. Default: 100. How many failed jobs should be kept.
   triggers:
   - type: azure-servicebus
     metadata:

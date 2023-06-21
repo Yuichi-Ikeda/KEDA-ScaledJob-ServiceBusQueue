@@ -1,5 +1,4 @@
 import os
-import pika
 import json
 import uuid
 from datetime import datetime, timedelta
@@ -22,12 +21,12 @@ def main():
     sender = queue_client.get_queue_sender(queue_name)
 
     # Set number of messages to send
-    for num in range(8):
+    for num in range(3000):
         task = {
             'job-id': jobID,
             'task-id': num,
             'sas-url': sas_url,
-            'wait-seconds': 90
+            'wait-seconds': 900
         }
         message = ServiceBusMessage(json.dumps(task))
         sender.send_messages(message)
@@ -47,7 +46,7 @@ def generateSaSUri(jobID):
             container_client.container_name,
             account_key=container_client.credential.account_key,
             permission=ContainerSasPermissions(write=True),
-            expiry=datetime.utcnow() + timedelta(hours=2),
+            expiry=datetime.utcnow() + timedelta(hours=24),
             start=datetime.utcnow() - timedelta(minutes=1)
         )
 

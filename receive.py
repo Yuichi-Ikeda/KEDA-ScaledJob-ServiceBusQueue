@@ -1,5 +1,4 @@
 import os
-import pika
 import json
 import time
 from datetime import datetime
